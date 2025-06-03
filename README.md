@@ -1,1 +1,3 @@
-# RAG-with-n8n
+# RAG with n8n and Pinecone using Telegram Bot
+
+

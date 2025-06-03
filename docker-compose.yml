@@ -1,0 +1,60 @@
+services:
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    ports: 
+      - 5678:5678
+    volumes:
+      - n8n_data:/home/node/.n8n
+    env_file:
+      - .env
+    networks:
+      - net
+
+    
+  pinecone:
+    image: ghcr.io/pinecone-io/pinecone-index:latest
+    environment:
+      PORT: 5081
+      INDEX_TYPE: serverless
+      VECTOR_TYPE: dense
+      DIMENSION: 768 
+      METRIC: cosine
+    ports:
+      - "5081:5081"
+    platform: linux/amd64
+    networks:
+      - net
+
+
+  endpoints:
+    image: endpoints:latest
+    build: ./
+    ports:
+      - "8080:8080"
+    depends_on:
+      - n8n
+      - pinecone
+    ipc: host
+    gpus: all
+    networks:
+      - net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 20s
+      timeout: 3s
+      retries: 10
+    environment:
+      - HF_HOME=/cache/huggingface
+    volumes:
+      - transformers_cache:/cache/huggingface
+
+
+
+
+volumes:
+  n8n_data:
+  transformers_cache:
+
+networks:
+  net:
