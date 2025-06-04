@@ -1,0 +1,140 @@
+{
+  "name": "RAG error handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        20,
+        0
+      ],
+      "id": "97854221-17d3-42da-81ef-58257f10bb90",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA",
+          "mode": "list",
+          "cachedResultName": "n8n_logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 707353075,
+          "mode": "list",
+          "cachedResultName": "errors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA/edit#gid=707353075"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "workflow_url": "={{ $json.execution.url }}",
+            "error_message": "={{ $json.execution.error.message }}",
+            "node_with_error": "={{ $json.execution.lastNodeExecuted }}",
+            "workflow_id": "={{ $json.workflow.id }}",
+            "workflow_name": "={{ $json.workflow.name }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "workflow_url",
+              "displayName": "workflow_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "node_with_error",
+              "displayName": "node_with_error",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "workflow_id",
+              "displayName": "workflow_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        220,
+        0
+      ],
+      "id": "94d2cb85-1640-448a-8415-a1c34303b4a2",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ECBurpCPG3PYYY99",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f6044bd3-4adc-46b5-afdf-9a093e2ac303",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "320a998d19079725472e5c4f5c27d86912c54bebba375332501c94c7ae156ead"
+  },
+  "id": "Dn7RW9J7pEt7K8LO",
+  "tags": []
+}

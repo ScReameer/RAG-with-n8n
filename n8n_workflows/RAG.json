@@ -1,0 +1,582 @@
+{
+  "name": "RAG",
+  "nodes": [
+    {
+      "parameters": {
+        "chatId": "={{ $('On message webhook').item.json.body.message.chat.id }}",
+        "text": "=Привет, {{ $('On message webhook').item.json.body.message.chat.first_name }}, я могу вывести информацию о произошедшем баге, если задашь вопрос в формате «Какой баг происходит при \\[описание проблемы]?»",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        900,
+        -80
+      ],
+      "id": "11726ce6-17c0-40ca-92c0-5485004a22a1",
+      "name": "Start info",
+      "webhookId": "5fa8693d-fbdb-47aa-90f2-bdfac72243f6",
+      "credentials": {
+        "telegramApi": {
+          "id": "A7vKshpNhihT8CyJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "e83740d9-4ed5-409f-adaa-fbb7cc7415d7",
+              "leftValue": "={{ $json.body.message.text }}",
+              "rightValue": "/start",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        680,
+        20
+      ],
+      "id": "10ccb0e8-c8e5-4029-8ee3-9e2fd30a9bf6",
+      "name": "New user?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://endpoints:8080/search",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.body.message.text }}"
+            }
+          ]
+        },
+        "options": {
+          "allowUnauthorizedCerts": true
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        900,
+        120
+      ],
+      "id": "97c17b1e-853d-45bf-9d6b-7cc4d746d734",
+      "name": "Search"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On message webhook').item.json.body.message.chat.id }}",
+        "text": "=Не знаю",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        120
+      ],
+      "id": "1ac85d52-6185-46e5-ab4d-c90bdb0748ba",
+      "name": "Dont know",
+      "webhookId": "21c8aa40-e845-4f4c-84e7-69bde3311ef1",
+      "credentials": {
+        "telegramApi": {
+          "id": "A7vKshpNhihT8CyJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('On message webhook').item.json.body.message.chat.id }}",
+        "text": "={{ $json.results.matches[0].metadata.text }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1340,
+        -80
+      ],
+      "id": "32672063-d407-4f1b-8342-f637861f022b",
+      "name": "Answer",
+      "webhookId": "21c8aa40-e845-4f4c-84e7-69bde3311ef1",
+      "credentials": {
+        "telegramApi": {
+          "id": "A7vKshpNhihT8CyJ",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "6d43769e-ebb5-4806-b151-38a0cb0ba18a",
+              "leftValue": "={{ $json.results.matches[0].score }}",
+              "rightValue": 0.5,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        20
+      ],
+      "id": "e790f4da-657b-4e97-b690-faa3a5534b47",
+      "name": "Cosine similarity > 0.5?"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "telegram",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -200,
+        20
+      ],
+      "id": "d7fa0553-51b8-439f-b292-50141d797225",
+      "name": "On message webhook",
+      "webhookId": "cabd6b1d-4019-469a-9660-c0675e6db4cb"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7f7115a7-8b0b-4eb0-b510-83f473537d2c",
+              "name": "body.message.text",
+              "value": "={{ $('On message webhook').item.json.body.message.text.replaceAll('\"', '\\\"') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        460,
+        20
+      ],
+      "id": "a2741f84-3a2b-455d-92b6-ba25128d8084",
+      "name": "Escaping quotation marks"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA",
+          "mode": "list",
+          "cachedResultName": "n8n_logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 201906977,
+          "mode": "list",
+          "cachedResultName": "history",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA/edit#gid=201906977"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now }}",
+            "user_id": "={{ $('On message webhook').item.json.body.message.from.id }}",
+            "user_request": "={{ $('Escaping quotation marks').item.json.body.message.text }}",
+            "bot_response": "={{ $json.results.matches[0].metadata.text }}",
+            "cosine_similarity": "={{ $json.results.matches[0].score }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "user_request",
+              "displayName": "user_request",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "bot_response",
+              "displayName": "bot_response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "cosine_similarity",
+              "displayName": "cosine_similarity",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1340,
+        -260
+      ],
+      "id": "37356d69-cdca-42d3-9000-7b795dd86107",
+      "name": "history logger",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ECBurpCPG3PYYY99",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://pinecone:5081/describe_index_stats",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        20,
+        20
+      ],
+      "id": "ed19ebab-c4b6-4f05-bc66-9f106a1ffb62",
+      "name": "Pinecone health status"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "9851c47c-792f-49ff-9b65-b496e0d5dc34",
+              "leftValue": "={{ $json.dimension }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9dc64a12-73d2-4436-9506-45b5432f194c",
+              "leftValue": "={{ $json.totalVectorCount }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "a19b3b15-d513-4711-9f5e-0fe6f11c06aa",
+              "leftValue": "={{ $json.indexFullness }}",
+              "rightValue": "",
+              "operator": {
+                "type": "number",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        20
+      ],
+      "id": "84fd1848-fc4c-43db-a280-1dc0ca70b70c",
+      "name": "Pinecone is alive?"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA",
+          "mode": "list",
+          "cachedResultName": "n8n_logger",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1183211729,
+          "mode": "list",
+          "cachedResultName": "pinecone",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/11394_Ts7Qdk0AO964gv6s-h8J-a4r9pRWe1DTVnDFmA/edit#gid=1183211729"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "date": "={{ $now }}",
+            "status": "Unavailable"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "date",
+              "displayName": "date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        460,
+        220
+      ],
+      "id": "5634217e-d746-4d71-a6d5-ca379b43186f",
+      "name": "[unavailable] pinecone logger",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ECBurpCPG3PYYY99",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "Pinecone is not available!"
+      },
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        680,
+        220
+      ],
+      "id": "e1bdbba8-33e0-4b06-8725-a3921c025e8d",
+      "name": "Stop and Error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "New user?": {
+      "main": [
+        [
+          {
+            "node": "Start info",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Search",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search": {
+      "main": [
+        [
+          {
+            "node": "Cosine similarity > 0.5?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cosine similarity > 0.5?": {
+      "main": [
+        [
+          {
+            "node": "Answer",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "history logger",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dont know",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "On message webhook": {
+      "main": [
+        [
+          {
+            "node": "Pinecone health status",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Escaping quotation marks": {
+      "main": [
+        [
+          {
+            "node": "New user?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone health status": {
+      "main": [
+        [
+          {
+            "node": "Pinecone is alive?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pinecone is alive?": {
+      "main": [
+        [
+          {
+            "node": "Escaping quotation marks",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "[unavailable] pinecone logger",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[unavailable] pinecone logger": {
+      "main": [
+        [
+          {
+            "node": "Stop and Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Moscow",
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": "Dn7RW9J7pEt7K8LO"
+  },
+  "versionId": "75edcd08-bf21-4b36-ab54-1f569fa67bfd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "320a998d19079725472e5c4f5c27d86912c54bebba375332501c94c7ae156ead"
+  },
+  "id": "U9rI8M3m32Ns6YKw",
+  "tags": []
+}
