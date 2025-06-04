@@ -32,9 +32,6 @@ services:
     build: ./
     ports:
       - "8080:8080"
-    depends_on:
-      - n8n
-      - pinecone
     ipc: host
     gpus: all
     networks:
@@ -48,6 +45,11 @@ services:
       - HF_HOME=/cache/huggingface
     volumes:
       - transformers_cache:/cache/huggingface
+    env_file:
+      - .env
+    depends_on:
+      - n8n
+      - pinecone
 
 
 
