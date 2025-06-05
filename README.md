@@ -5,7 +5,8 @@
 2. *NVIDIA Container toolkit*
 3. *CUDA 12.X*
 4. *cuDNN 9.X*
-
+## N8N workflow
+![](imgs/rag.png)
 ## How to use
 1. **Create `.env` file:**
     ```bash
